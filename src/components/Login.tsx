@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 // Predefined credentials
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '1234';
+const ADMIN_USERNAME = 'mostefa';
+const ADMIN_PASSWORD = 'Nassim2018';
 const STAFF_USERNAME = 'agent';
 const STAFF_PASSWORD = '1234';
 
@@ -71,10 +71,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             Login
           </button>
         </form>
-        <div className="login-hint">
-          <p>Full access: admin / 1234</p>
-          <p>Frais+Bons only: agent / 1234</p>
-        </div>
       </div>
     </div>
   );
