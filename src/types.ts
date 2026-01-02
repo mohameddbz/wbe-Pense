@@ -1,5 +1,12 @@
 // Type definitions for the application
 
+export interface Versement {
+  id: string;
+  date: string;
+  montant: number;
+  note?: string;
+}
+
 export interface Bon {
   id: string;
   date: string; // ISO date string
@@ -9,6 +16,10 @@ export interface Bon {
   materiel: string;
   prixUnitaire: number;
   montant: number; // Calculated: (poidsComplet - poidsVide) * prixUnitaire
+  statut: 'impaye' | 'paye_partiel' | 'paye'; // Payment status
+  versements: Versement[]; // Payment history
+  montantPaye: number; // Total amount paid
+  montantRestant: number; // Remaining amount to pay
 }
 
 export interface Frais {

@@ -15,6 +15,8 @@ const StatisticsPage: React.FC = () => {
   });
   const [filteredBons, setFilteredBons] = useState<Bon[]>([]);
   const [filteredFrais, setFilteredFrais] = useState<Frais[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     calculateStatistics();
@@ -48,7 +50,10 @@ const StatisticsPage: React.FC = () => {
   };
 
   const calculateStatistics = async () => {
+    if (hasLoaded && filter === 'today' && !customDate) return; // Ne charger qu'une fois pour today
+    
     try {
+      setLoading(true);
       const { start } = getDateRange();
 
       // Load data from Google Sheets
@@ -68,8 +73,11 @@ const StatisticsPage: React.FC = () => {
       const benefice = totalBons - totalFrais;
 
       setStatistics({ totalBons, totalFrais, benefice });
+      setHasLoaded(true);
     } catch (error) {
       console.error('Error loading statistics from Sheets:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,6 +95,13 @@ const StatisticsPage: React.FC = () => {
   return (
     <div className="statistics-page">
       <h1>Statistics & Reports</h1>
+
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Loading statistics from Google Sheets...</p>
+        </div>
+      )}
 
       <div className="filter-section">
         <div className="filter-buttons">
@@ -132,7 +147,7 @@ const StatisticsPage: React.FC = () => {
             <div className="stat-icon">📦</div>
             <div className="stat-content">
               <h3>Total Montant des Bons</h3>
-              <p className="stat-value">{statistics.totalBons.toFixed(2)} DH</p>
+              <p className="stat-value">{statistics.totalBons.toFixed(2)} DA</p>
               <p className="stat-count">{filteredBons.length} bons</p>
             </div>
           </div>
@@ -141,7 +156,7 @@ const StatisticsPage: React.FC = () => {
             <div className="stat-icon">💰</div>
             <div className="stat-content">
               <h3>Total Montant des Frais</h3>
-              <p className="stat-value">{statistics.totalFrais.toFixed(2)} DH</p>
+              <p className="stat-value">{statistics.totalFrais.toFixed(2)} DA</p>
               <p className="stat-count">{filteredFrais.length} frais</p>
             </div>
           </div>
@@ -150,7 +165,7 @@ const StatisticsPage: React.FC = () => {
             <div className="stat-icon">{statistics.benefice >= 0 ? '📈' : '📉'}</div>
             <div className="stat-content">
               <h3>Bénéfice</h3>
-              <p className="stat-value">{statistics.benefice.toFixed(2)} DH</p>
+              <p className="stat-value">{statistics.benefice.toFixed(2)} DA</p>
               <p className="stat-formula">Total Bons - Total Frais</p>
             </div>
           </div>
@@ -176,15 +191,15 @@ const StatisticsPage: React.FC = () => {
                       <td>{bon.nomClient}</td>
                       <td>{bon.materiel}</td>
                       <td>{(bon.poidsComplet - bon.poidsVide).toFixed(2)} kg</td>
-                      <td>{bon.prixUnitaire.toFixed(2)} DH</td>
-                      <td className="amount">{bon.montant.toFixed(2)} DH</td>
+                      <td>{bon.prixUnitaire.toFixed(2)} DA</td>
+                      <td className="amount">{bon.montant.toFixed(2)} DA</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr>
                     <td colSpan={4}><strong>Total</strong></td>
-                    <td className="amount"><strong>{statistics.totalBons.toFixed(2)} DH</strong></td>
+                    <td className="amount"><strong>{statistics.totalBons.toFixed(2)} DA</strong></td>
                   </tr>
                 </tfoot>
               </table>
@@ -207,14 +222,14 @@ const StatisticsPage: React.FC = () => {
                   {filteredFrais.map(frais => (
                     <tr key={frais.id}>
                       <td>{frais.description}</td>
-                      <td className="amount">{frais.prix.toFixed(2)} DH</td>
+                      <td className="amount">{frais.prix.toFixed(2)} DA</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr>
                     <td><strong>Total</strong></td>
-                    <td className="amount"><strong>{statistics.totalFrais.toFixed(2)} DH</strong></td>
+                    <td className="amount"><strong>{statistics.totalFrais.toFixed(2)} DA</strong></td>
                   </tr>
                 </tfoot>
               </table>

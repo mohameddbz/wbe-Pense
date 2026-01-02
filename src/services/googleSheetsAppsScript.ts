@@ -47,6 +47,10 @@ export async function getAllBons() {
       materiel: bon.Materiel || bon.materiel,
       prixUnitaire: parseFloat(bon['Prix Unitaire'] || bon.prixUnitaire) || 0,
       montant: parseFloat(bon.Montant || bon.montant) || 0,
+      statut: bon.Statut || bon.statut || 'impaye',
+      versements: bon.Versements ? (typeof bon.Versements === 'string' ? JSON.parse(bon.Versements) : bon.Versements) : [],
+      montantPaye: parseFloat(bon['Montant Paye'] || bon.montantPaye) || 0,
+      montantRestant: parseFloat(bon['Montant Restant'] || bon.montantRestant) || parseFloat(bon.Montant || bon.montant) || 0,
     }));
     
     return bons;
@@ -61,10 +65,16 @@ export async function addBon(bon: any) {
     console.log('🔵 [DEBUG] Sending bon to Sheets:', bon);
     console.log('🔵 [DEBUG] URL:', WEB_APP_URL);
     
+    // Stringify versements array for Google Sheets
+    const bonToSend = {
+      ...bon,
+      versements: JSON.stringify(bon.versements || [])
+    };
+    
     const payload = {
       action: 'add',
       type: 'bons',
-      item: bon
+      item: bonToSend
     };
     console.log('🔵 [DEBUG] Payload:', JSON.stringify(payload, null, 2));
     
@@ -91,6 +101,47 @@ export async function addBon(bon: any) {
     return result;
   } catch (error) {
     console.error('❌ [DEBUG] Error adding bon:', error);
+    throw error;
+  }
+}
+
+export async function updateBon(id: string, bon: any) {
+  try {
+    console.log('🔵 [DEBUG] Updating bon in Sheets:', bon);
+    
+    // Stringify versements array for Google Sheets
+    const bonToSend = {
+      ...bon,
+      versements: JSON.stringify(bon.versements || [])
+    };
+    
+    const payload = {
+      action: 'update',
+      type: 'bons',
+      id: id,
+      item: bonToSend
+    };
+    console.log('🔵 [DEBUG] Update payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const result: ApiResponse = await response.json();
+    console.log('🔵 [DEBUG] Update result:', result);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to update bon');
+    }
+    
+    console.log('✅ [DEBUG] Bon updated successfully!');
+    return result;
+  } catch (error) {
+    console.error('❌ [DEBUG] Error updating bon:', error);
     throw error;
   }
 }

@@ -12,6 +12,7 @@ const FraisPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [syncStatus, setSyncStatus] = useState<string>('⏳ Loading...');
   const [isLoading, setIsLoading] = useState(true);
+  const userRole = localStorage.getItem('userRole') as 'full' | 'limited' | null;
 
   useEffect(() => {
     checkSheetsConnection();
@@ -172,7 +173,7 @@ const FraisPage: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="prix">Prix (DH) *</label>
+              <label htmlFor="prix">Prix (DA) *</label>
               <input
                 type="number"
                 id="prix"
@@ -195,7 +196,7 @@ const FraisPage: React.FC = () => {
           <div className="table-header">
             <h2>All Frais ({frais.length})</h2>
             <div className="total-badge">
-              Total: {(totalFrais ?? 0).toFixed(2)} DH
+              Total: {(totalFrais ?? 0).toFixed(2)} DA
             </div>
           </div>
           {frais.length > 0 ? (
@@ -214,15 +215,17 @@ const FraisPage: React.FC = () => {
                     <tr key={f.id}>
                       <td>{new Date(f.date).toLocaleDateString()}</td>
                       <td>{f.description}</td>
-                      <td className="prix">{(f.prix ?? 0).toFixed(2)} DH</td>
+                      <td className="prix">{(f.prix ?? 0).toFixed(2)} DA</td>
                       <td>
-                        <button
-                          onClick={() => handleDelete(f.id)}
-                          className="delete-button"
-                          title="Delete frais"
-                        >
-                          🗑️
-                        </button>
+                        {userRole === 'full' && (
+                          <button
+                            onClick={() => handleDelete(f.id)}
+                            className="delete-button"
+                            title="Delete frais"
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

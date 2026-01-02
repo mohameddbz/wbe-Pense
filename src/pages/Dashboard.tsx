@@ -9,18 +9,25 @@ const Dashboard: React.FC = () => {
   const [totalBons, setTotalBons] = useState(0);
   const [totalFrais, setTotalFrais] = useState(0);
   const [benefice, setBenefice] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     loadTodayData();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(loadTodayData, 5000);
-    return () => clearInterval(interval);
+    
+    // Listen for storage events to update when data changes
+    const handleStorageChange = () => {
+      loadTodayData();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const loadTodayData = async () => {
+    if (hasLoaded) return; // Ne charger qu'une fois
+    
     try {
+      setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       console.log('📅 [DASHBOARD] Today date:', today);
       
@@ -50,8 +57,11 @@ const Dashboard: React.FC = () => {
       setTotalFrais(totalF);
       
       setBenefice(totalB - totalF);
+      setHasLoaded(true);
     } catch (error) {
       console.error('Error loading dashboard data from Sheets:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,12 +70,19 @@ const Dashboard: React.FC = () => {
       <h1>Dashboard - Today's Statistics</h1>
       <p className="dashboard-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Loading data from Google Sheets...</p>
+        </div>
+      )}
+      
       <div className="stats-grid">
         <div className="stat-card stat-bons">
           <div className="stat-icon">📦</div>
           <div className="stat-content">
             <h3>Total Montant des Bons</h3>
-            <p className="stat-value">{totalBons.toFixed(2)} DH</p>
+            <p className="stat-value">{totalBons.toFixed(2)} DA</p>
             <p className="stat-count">{todayBons.length} bons today</p>
           </div>
         </div>
@@ -74,7 +91,7 @@ const Dashboard: React.FC = () => {
           <div className="stat-icon">💰</div>
           <div className="stat-content">
             <h3>Total Montant des Frais</h3>
-            <p className="stat-value">{totalFrais.toFixed(2)} DH</p>
+            <p className="stat-value">{totalFrais.toFixed(2)} DA</p>
             <p className="stat-count">{todayFrais.length} frais today</p>
           </div>
         </div>
@@ -83,7 +100,7 @@ const Dashboard: React.FC = () => {
           <div className="stat-icon">{benefice >= 0 ? '📈' : '📉'}</div>
           <div className="stat-content">
             <h3>Bénéfice</h3>
-            <p className="stat-value">{benefice.toFixed(2)} DH</p>
+            <p className="stat-value">{benefice.toFixed(2)} DA</p>
             <p className="stat-formula">Total Bons - Total Frais</p>
           </div>
         </div>
@@ -106,7 +123,7 @@ const Dashboard: React.FC = () => {
                   <tr key={bon.id}>
                     <td>{bon.nomClient}</td>
                     <td>{bon.materiel}</td>
-                    <td>{bon.montant.toFixed(2)} DH</td>
+                    <td>{bon.montant.toFixed(2)} DA</td>
                   </tr>
                 ))}
               </tbody>
@@ -130,7 +147,7 @@ const Dashboard: React.FC = () => {
                 {todayFrais.slice(0, 5).map(frais => (
                   <tr key={frais.id}>
                     <td>{frais.description}</td>
-                    <td>{frais.prix.toFixed(2)} DH</td>
+                    <td>{frais.prix.toFixed(2)} DA</td>
                   </tr>
                 ))}
               </tbody>
