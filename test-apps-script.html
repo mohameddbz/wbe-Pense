@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Apps Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #357ae8;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #4285f4;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+        h1 {
+            color: #333;
+        }
+        .url-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Google Apps Script Connection</h1>
+        
+        <div class="url-display">
+            <strong>URL:</strong><br>
+            https://script.google.com/a/macros/esi.dz/s/AKfycbzLkihX2KhH3qv8c-1D_j6MvN0FG1IJ9qoCd6l-98yOiPdbjCmHhnduBFryVhEaw19b4A/exec
+        </div>
+        
+        <h3>Tests disponibles:</h3>
+        
+        <button onclick="testGetRequest()">1️⃣ Test GET Request</button>
+        <button onclick="testPostRequest()">2️⃣ Test POST Request</button>
+        <button onclick="testAddBon()">3️⃣ Test Add Bon</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = 'https://script.google.com/a/macros/esi.dz/s/AKfycbzLkihX2KhH3qv8c-1D_j6MvN0FG1IJ9qoCd6l-98yOiPdbjCmHhnduBFryVhEaw19b4A/exec';
+        
+        function showResult(message, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = isError ? 'error' : 'success';
+        }
+        
+        function showLoading() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = '⏳ Loading...';
+            resultDiv.className = '';
+        }
+        
+        async function testGetRequest() {
+            showLoading();
+            console.log('🧪 Testing GET request...');
+            
+            try {
+                const url = `${WEB_APP_URL}?action=getAll&type=bons`;
+                console.log('URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                
+                showResult(`✅ GET Request Success!\n\nStatus: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                console.error('Error:', error);
+                showResult(`❌ GET Request Failed!\n\nError: ${error.message}\n\nType: ${error.name}\n\nCheck console for details`, true);
+            }
+        }
+        
+        async function testPostRequest() {
+            showLoading();
+            console.log('🧪 Testing POST request...');
+            
+            try {
+                const payload = {
+                    action: 'getAll',
+                    type: 'bons'
+                };
+                
+                console.log('Payload:', payload);
+                
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                
+                showResult(`✅ POST Request Success!\n\nStatus: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                console.error('Error:', error);
+                showResult(`❌ POST Request Failed!\n\nError: ${error.message}\n\nType: ${error.name}\n\nCheck console for details`, true);
+            }
+        }
+        
+        async function testAddBon() {
+            showLoading();
+            console.log('🧪 Testing Add Bon...');
+            
+            try {
+                const testBon = {
+                    id: Date.now().toString(),
+                    date: new Date().toISOString(),
+                    nomClient: 'Test Client',
+                    poidsVide: 10.5,
+                    poidsComplet: 50.5,
+                    materiel: 'Cuivre',
+                    prixUnitaire: 85.5,
+                    montant: 3420
+                };
+                
+                const payload = {
+                    action: 'add',
+                    type: 'bons',
+                    item: testBon
+                };
+                
+                console.log('Payload:', payload);
+                
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                
+                showResult(`✅ Add Bon Success!\n\nStatus: ${response.status}\n\nBon added:\n${JSON.stringify(testBon, null, 2)}\n\nResponse:\n${JSON.stringify(data, null, 2)}\n\n📝 Check your Google Sheet!`);
+            } catch (error) {
+                console.error('Error:', error);
+                showResult(`❌ Add Bon Failed!\n\nError: ${error.message}\n\nType: ${error.name}\n\nCheck console for details`, true);
+            }
+        }
+        
+        // Auto-run GET test on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Page loaded, running automatic GET test...');
+            testGetRequest();
+        });
+    </script>
+</body>
+</html>
